@@ -1,6 +1,7 @@
 import express from 'express';
 import connect from './src/config/connection.js';
 import productRoutes from './src/routes/product.routes.js';
+import userRoutes from './src/routes/user.routes.js';
 
 const app = express();
 
@@ -14,3 +15,4 @@ app.listen(PORT, () => {
 
 connect()
 app.use('/api', productRoutes)
+app.use('/app', userRoutes)
