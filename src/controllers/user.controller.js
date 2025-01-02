@@ -116,6 +116,28 @@ class UserController {
         }
     }
 
+    async register (req, res) {
+        try {
+            const { name, email, password, role } = req.body;
+            if(password.length < 8) {
+                return res.status(400).send({
+                    message: "Password must be at least 8 characters long",
+                })
+            }
+            const hass = await bcrypt.hash(password, 10);
+            const user = await User.create({ name, email, password: hass, role });
+            res.status(201).send({
+                message: "User registred successfully",
+                user
+            })
+        } catch (error) {
+            res.status(400).send({
+                message: "Error in the process user register",
+                error
+            })
+        }
+    }
+
     async login(req, res) {
         try {
             const { email, password } = req.body;
@@ -151,6 +173,8 @@ class UserController {
             });
         }
     }
+
+
 
 }
 

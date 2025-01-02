@@ -16,3 +16,6 @@ app.listen(PORT, () => {
 connect()
 app.use('/api', productRoutes)
 app.use('/app', userRoutes)
+
+//para connectar el backend con el frontend es necesario utilizar cors "intercambio de recursos de origen cruzados"
+

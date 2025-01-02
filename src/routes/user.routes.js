@@ -14,7 +14,9 @@ app.put("/update-user/:id", verifyToken, usercontroll.updateUser)
 app.delete("/delete-user/:id", verifyToken, usercontroll.deleteUser)
 
 //Login user ruta publica no usa jwt
+app.post("/register", usercontroll.register)
 app.post("/login", usercontroll.login)
+
 export default app;
 
 //aqui tambien podemos agregarle middlewares a las rutas 
