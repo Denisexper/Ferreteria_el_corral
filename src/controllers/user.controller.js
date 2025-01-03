@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import { generateToken } from '../utils/jwt.js'; // Asegúrate de tener esta función
+import mongoose from "mongoose";
 
 class UserController {
 
@@ -22,15 +23,15 @@ class UserController {
             // Crear nuevo usuario con la contraseña hasheada
             const newUser = await User.create({ name, email, password: hashedPassword, role });
 
-            res.status(201).send({
+            res.status(200).send({
                 message: "User created successfully",
                 newUser
             });
 
         } catch (error) {
-            res.status(400).send({
-                status: false,
-                message: error.message
+            res.status(500).send({
+                message: "Error creating user",
+                error: error.message
             });
         }
     }
@@ -38,14 +39,17 @@ class UserController {
     async getAllUsers(req, res) {
         try {
             const users = await User.find().select("-__v");
+
             res.status(200).send({
+
                 message: "Users retrieved successfully",
                 users
             });
         } catch (error) {
-            res.status(400).send({
+            res.status(500).send({
+
                 message: "Error retrieving users",
-                error
+                error: error.message
             });
         }
     }
@@ -53,10 +57,21 @@ class UserController {
     async getUser(req, res) {
         try {
             const { id } = req.params;
+
+            //validacion para formato correcto de id
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).send({
+                    message: "Invalid user ID format"
+                });
+            }
+
             const user = await User.findById(id).select("-__v");
+
+            //validar si el usuario existe
             if (!user) {
                 return res.status(404).send({
-                    message: "Please enter a correct ID"
+
+                    message: "User not found"
                 });
             }
             res.status(200).send({
@@ -64,9 +79,9 @@ class UserController {
                 user
             });
         } catch (error) {
-            res.status(400).send({
+            res.status(500).send({
                 message: "Error retrieving user",
-                error
+                error: error.message
             });
         }
     }
@@ -74,11 +89,13 @@ class UserController {
     async updateUser(req, res) {
         try {
             const { id } = req.params;
+
             let { name, email, password, role } = req.body;
 
             // Si el campo password existe, lo hasheamos
             if (password) {
                 if (password.length < 8) {
+
                     return res.status(400).send({
                         message: "Password must be at least 8 characters long",
                     });
@@ -89,13 +106,15 @@ class UserController {
             const updatedUser = await User.findByIdAndUpdate(id, { name, email, password, role }, { new: true });
 
             res.status(200).send({
+
                 message: "User updated successfully",
                 updatedUser
             });
         } catch (error) {
-            res.status(400).send({
+            res.status(500).send({
+
                 message: "Error updating user",
-                error
+                error: error.message
             });
         }
     }
@@ -103,15 +122,18 @@ class UserController {
     async deleteUser(req, res) {
         try {
             const { id } = req.params;
+
             const user = await User.findByIdAndDelete(id);
+
             res.status(200).send({
+
                 message: "User deleted successfully",
                 user
             });
         } catch (error) {
-            res.status(400).send({
+            res.status(500).send({
                 message: "Error deleting user",
-                error
+                error: error.message
             });
         }
     }

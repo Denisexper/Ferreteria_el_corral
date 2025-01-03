@@ -7,11 +7,11 @@ const usercontroll = new UserController();
 const app = express.Router()
 
 //rutas privadas utilizan jwt
-app.post("/create-user", verifyToken, usercontroll.createUser)
-app.get("/get-users", verifyToken, usercontroll.getAllUsers)
-app.get("/get-user/:id", verifyToken, usercontroll.getUser)
-app.put("/update-user/:id", verifyToken, usercontroll.updateUser)
-app.delete("/delete-user/:id", verifyToken, usercontroll.deleteUser)
+app.post("/create-user", usercontroll.createUser)
+app.get("/get-users", usercontroll.getAllUsers)
+app.get("/get-user/:id", usercontroll.getUser)
+app.put("/update-user/:id", usercontroll.updateUser)
+app.delete("/delete-user/:id", usercontroll.deleteUser)
 
 //Login user ruta publica no usa jwt
 app.post("/register", usercontroll.register)
