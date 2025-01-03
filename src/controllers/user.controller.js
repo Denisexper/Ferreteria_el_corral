@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
-import { generateToken } from '../utils/jwt.js'; // Asegúrate de tener esta función
-import mongoose from "mongoose";
+/* import { generateToken } from '../utils/jwt.js'; // Asegúrate de tener esta función
+ */import mongoose from "mongoose";
 
 class UserController {
 
@@ -181,17 +181,16 @@ class UserController {
             }
 
             // Generar el token JWT si la contraseña es correcta
-            const token = generateToken({ id: user._id, email: user.email, role: user.role });
-
+/*             const token = generateToken({ id: user._id, email: user.email, role: user.role });
+ */
             res.status(200).send({
                 message: "User logged in successfully",
-                token,
                 user
             });
         } catch (error) {
             res.status(400).send({
                 message: "Error logging in user",
-                error
+                error: error.message
             });
         }
     }
