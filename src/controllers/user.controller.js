@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
-/* import { generateToken } from '../utils/jwt.js'; // Asegúrate de tener esta función
- */import mongoose from "mongoose";
+import { generateToken } from '../utils/jwt.js';
+import mongoose from "mongoose";
 
 class UserController {
 
@@ -147,10 +147,15 @@ class UserController {
                 })
             }
             const hass = await bcrypt.hash(password, 10);
+
             const user = await User.create({ name, email, password: hass, role });
+
+            const token = generateToken({ id: user._id, email: user.email, role: user.role })
+
             res.status(201).send({
                 message: "User registred successfully",
-                user
+                user,
+                token
             })
         } catch (error) {
             res.status(400).send({
@@ -174,18 +179,20 @@ class UserController {
             // Verificar la contraseña (comparar la ingresada con la hasheada)
             const isMatch = await bcrypt.compare(password, user.password);
 
+            // crear token
+            const token = generateToken({ id: user._id, email: user.email, role: user.role})
+
             if (!isMatch) {
                 return res.status(400).send({
                     message: "Incorrect password"
                 });
             }
 
-            // Generar el token JWT si la contraseña es correcta
-/*             const token = generateToken({ id: user._id, email: user.email, role: user.role });
- */
+
             res.status(200).send({
                 message: "User logged in successfully",
-                user
+                user,
+                token
             });
         } catch (error) {
             res.status(400).send({
