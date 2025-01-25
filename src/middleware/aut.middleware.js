@@ -21,3 +21,28 @@ export const verifyToken = (req, res, next) => {
         res.status(400).send({ message: 'Invalid token.' });
     }
 };
+
+export const verifyRoleToken = (req, res, next) => {
+
+    const token = req.header('Authorization')
+        
+        if(!token){
+            return res.status(401).send({message: 'access denied. No token found'})
+        }
+
+        try {
+            const decoded = jwt.verify(token, secretKey)
+
+            if(decoded.role !== 'admin') {
+                return res.status(403).send({message: 'no tienes los permisos de admin'})
+            }
+
+            req.user = decoded
+            next()
+
+        } catch (error) {
+            return res.status(400).send({message: 'Invalid token'})
+        }
+
+    
+}
