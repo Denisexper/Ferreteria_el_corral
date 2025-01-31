@@ -3,6 +3,15 @@ import User from "../models/user.model.js";
 import { generateToken } from '../utils/jwt.js';
 import mongoose from "mongoose";
 
+//para proceso de forgot y reseet password
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+
+//variables de entorno 
+import dotenv from 'dotenv'
+dotenv.config(); //cargamos variables de entorno
+
+
 class UserController {
 
     async createUser(req, res) {
@@ -199,6 +208,112 @@ class UserController {
                 message: "Error logging in user",
                 error: error.message
             });
+        }
+    }
+
+    //reseet and updata password
+
+    async forgotPassword(req, res) {
+        try {
+            
+            const { email } = req.body;
+
+            const user = await User.findOne({email});
+
+            if(!user){
+                return res.status(404).send({
+                    message: "User not found"
+                })
+            }
+
+            //generar token de recuperacion con crypto
+            const resetToken = crypto.randomBytes(20).toString('hex');
+            const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+            //guardamos el token y expiracion en el usuario
+            user.resetPasswordToken = resetToken;
+            user.resetPasswordExpires = resetTokenExpiry;
+            await user.save();
+
+            //configuracion del transporte del email nodemail
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth:{
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            })
+
+            //creamos correo electronico
+            const mailOptions = {
+                to: user.email,
+                from: process.env.EMAIL_USER,
+                subject: 'Password Reset',
+                text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+                    Please click on the following link, or paste this into your browser to complete the process:\n\n
+                    http://${req.headers.host}/reset-password/${resetToken}\n\n
+                    If you did not request this, please ignore this email and your password will remain unchanged.\n`
+            };
+
+            //enviar correo electronico
+            await transporter.sendMail(mailOptions);
+
+            res.status(200).send({
+                message: "Password reset email sent successfully"
+            })
+
+
+        } catch (error) {
+            res.status(500).send({
+                message: "Error sending password reset email",
+                error:error.message
+            })
+        }
+    }
+
+    async reesetPassword(req, res) {
+        try {
+            const { token } = req.params;
+
+            const { newPassword } = req.body;
+
+            //buscamos el usuario por el token y verificamos si ha expirado
+            const user = await User.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: Date.now() }
+            })
+
+            if(!user){
+                return res.status(400).send({
+                    message: "Invalid or expired password reset token"
+                })
+            }
+
+            //validar contraseña
+            if(newPassword.length < 8){
+                return res.status(400).send({
+                    message: "Password must be at least 8 characters long"
+                })
+            }
+
+            //hashear contraseña nueva
+            const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+            //actualizar contraseña y limpiar el token
+            user.password = hashedPassword
+            user.resetPasswordToken = undefined
+            user.resetPasswordExpires = undefined
+            await user.save();
+
+            res.status(200).send({
+                message: "Password reset successfully"
+            })
+
+        } catch (error) {
+            res.status(500).send({
+                message: "Error resetting password",
+                error: error.message
+            })
         }
     }
 

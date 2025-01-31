@@ -17,6 +17,10 @@ app.delete("/delete-user/:id", usercontroll.deleteUser)
 app.post("/register", usercontroll.register)
 app.post("/login", usercontroll.login)
 
+//forgot and reeset password
+app.post('/forgot-password', usercontroll.forgotPassword)
+app.post('/reset-password', usercontroll.reesetPassword)
+
 export default app;
 
 //aqui tambien podemos agregarle middlewares a las rutas 
